@@ -1,0 +1,12 @@
+# started on Wed Dec  11 7:17:22 2024
+
+
+ Performance counter stats for './matrix_profiling' (5 runs):
+
+   <not supported>      instructions
+   <not supported>      cycles
+   <not supported>      cache-misses
+   <not supported>      L1-dcache-misses
+            657.60 msec cpu-clock                        #    2.904 CPUs utilized            ( +-  1.53% )
+
+           0.22641 +- 0.00607 seconds time elapsed  ( +-  2.68% )
