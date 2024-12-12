@@ -14,7 +14,7 @@ void mandelbrot_optimized(int width, int height, int* plot);
 
 namespace chrono = std::chrono;
 
-/*
+
 void visualize(int width, int height, int* plot) {
     std::string block_elem = "\u2588";
     std::string white = "\033[01;37m";
@@ -29,7 +29,7 @@ void visualize(int width, int height, int* plot) {
         std::cerr << std::endl;
     }
 }
-*/
+
 
 double test_function(std::function<void(int, int, int*)> func, int width,
                      int height, int* plot) {

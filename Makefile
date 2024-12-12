@@ -1,7 +1,7 @@
 CC ?= cc
 CFLAGS ?= -g -Wall -O2
 CXX ?= c++
-CXXFLAGS ?= -O3 -std=c++17 -Wall -g
+CXXFLAGS ?= -O3 -msse2 -std=c++17 -Wall -g
 CARGO ?= cargo
 RUSTFLAGS ?= -g
 LDFLAGS = -lpthread
@@ -24,6 +24,12 @@ libmandelbrot.so: mandelbrot.cpp
 	$(CXX) $(CXXFLAGS) -shared -fPIC -o $@ $^ $(LDFLAGS)
 
 matrix_profiling: matrix_profiling.cpp matrix.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+test_matrix: matrix.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+test_mandel: mandelbrot.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 mandelbrot_profiling: mandelbrot_profiling.cpp mandelbrot.cpp

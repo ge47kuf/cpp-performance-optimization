@@ -1,0 +1,13 @@
+# started on Wed Dec  11 7:17:22 2024
+
+
+ Performance counter stats for './mandelbrot_profiling' (5 runs):
+
+   <not supported>      instructions
+   <not supported>      cycles
+   <not supported>      cache-misses
+   <not supported>      L1-dcache-misses
+         11,458.68 msec cpu-clock                        #    0.900 CPUs utilized            ( +- 11.60% )
+
+             12.74 +- 1.33 seconds time elapsed  ( +- 10.42% )
+
