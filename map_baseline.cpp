@@ -90,6 +90,7 @@ std::string service(std::string& in) {
     std::string line;
 
     std::unordered_map<std::string, std::string> entries;
+    entries.reserve(1000000);
 
     while (std::getline(iss, line)) {
         std::vector<std::string> tokens = tokenize(line);
