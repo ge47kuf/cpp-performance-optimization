@@ -5,8 +5,9 @@
 
    <not supported>      instructions
    <not supported>      cycles
-   <not supported>      cache-misses
    <not supported>      L1-dcache-misses
-            657.60 msec cpu-clock                        #    2.904 CPUs utilized            ( +-  1.53% )
+   <not supported>      cache-misses
+            957.49 msec cpu-clock                        #    3.072 CPUs utilized            ( +-  1.86% )
 
-           0.22641 +- 0.00607 seconds time elapsed  ( +-  2.68% )
+           0.31172 +- 0.00663 seconds time elapsed  ( +-  2.13% )
+
