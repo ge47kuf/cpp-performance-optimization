@@ -17,7 +17,7 @@ int MAX_THREADS = 4;
 uint32_t calculate_block_size(int cache_level) {
     int cache_size = (cache_level == 1) ? L1_CACHE_SIZE :
                      (cache_level == 2) ? L2_CACHE_SIZE : L3_CACHE_SIZE;
-    int bytes_per_pixel = sizeof(float) * 2; // Assume x, y coordinates
+    int bytes_per_pixel = sizeof(float) * 2;
     return static_cast<int>(std::sqrt(cache_size / bytes_per_pixel));
 }
 
@@ -98,7 +98,7 @@ void thread_worker(int start_x, int end_x, int start_y, int end_y, int width, in
                 re = _mm_add_ps(diff, x);
             }
 
-            _mm_store_si128(reinterpret_cast<__m128i*>(&plot[i * width + j]), count); // Aligned store
+            _mm_store_si128(reinterpret_cast<__m128i*>(&plot[i * width + j]), count);
         }
     }
 }
@@ -107,13 +107,13 @@ void optimized_mandelbrot(int width, int height, int* plot) {
     float dx = (X_END - X_START) / (width - 1);
     float dy = (Y_END - Y_START) / (height - 1);
 
-    int cache_level = 3; // Change this to 1, 2, or 3 for L1, L2, or L3 cache
+    int cache_level = 3;
     uint32_t block_size = calculate_block_size(cache_level);
 
     std::vector<std::thread> threads;
 
     int num_blocks = std::max(width, height) / block_size;
-    if (num_blocks < MAX_THREADS) num_blocks = MAX_THREADS; // Ensure enough blocks for threads
+    if (num_blocks < MAX_THREADS) num_blocks = MAX_THREADS;
 
     for (int t = 0; t < num_blocks; t++) {
         int start_x = (width > height) ? (t * block_size) : 0;
@@ -138,6 +138,7 @@ extern "C" {
 #endif
 
 void mandelbrot(int width, int height, int* plot) {
+    //naive_mandelbrot(width, height, plot);
     optimized_mandelbrot(width, height, plot);
 }
 

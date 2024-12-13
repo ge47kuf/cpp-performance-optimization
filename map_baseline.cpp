@@ -4,8 +4,10 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
-#include <map> // balance tree inefficient with big data, time : 1.49
+//#include <map> // balance tree inefficient with big data, time : 1.49
 #include <unordered_map> // time : 0.90
+
+#define RESERVED_SIZE 1000000 // change this for better performance
 
 /*===========perf analyse========================
 Samples: 2K of event 'cpu-clock:uhppp', Event count (approx.): 645750000
@@ -33,7 +35,7 @@ Samples: 2K of event 'cpu-clock:uhppp', Event count (approx.): 645750000
 
 std::vector<std::string> tokenize(const std::string& s) {
     std::vector<std::string> result;
-    result.reserve(10);
+    result.reserve(10); // this does not change time
 
     std::string::size_type from = 0;
     std::string::size_type colon = s.find(':');
@@ -90,7 +92,7 @@ std::string service(std::string& in) {
     std::string line;
 
     std::unordered_map<std::string, std::string> entries;
-    entries.reserve(1000000);
+    entries.reserve(RESERVED_SIZE);
 
     while (std::getline(iss, line)) {
         std::vector<std::string> tokens = tokenize(line);

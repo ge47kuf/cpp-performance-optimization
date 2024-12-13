@@ -13,9 +13,10 @@
 #include <condition_variable>
 
 #define L1_CACHE_SIZE (32 * 1024) // time: 0.8
-#define L3_CACHE_SIZE (8 * 1024 * 1024) // time: 1.3
+//#define L3_CACHE_SIZE (8 * 1024 * 1024) // time: 1.3
+#define NUM_THREADS 4
 
-namespace chrono = std::chrono;
+//namespace chrono = std::chrono;
 
 // naive ansatz-------------------------------
 void naive_matrix_multiply(float *a, float *b, float *c, int n) {
@@ -31,19 +32,23 @@ void naive_matrix_multiply(float *a, float *b, float *c, int n) {
 
 // optimized ansatz---------------------------
 class ThreadPool {
+    std::vector<std::thread> workers;
+    std::queue<std::function<void()>> tasks;
+    std::mutex queue_mutex;
+    std::condition_variable condition;
+    bool stop = false;
 public:
-    ThreadPool(size_t num_threads) {
+    explicit ThreadPool(size_t num_threads) {
         for (size_t i = 0; i < num_threads; ++i) {
             workers.emplace_back([this] {
                 while (true) {
                     std::function<void()> task;
                     {
-                        std::unique_lock<std::mutex> lock(this->queue_mutex);
+                        std::unique_lock lock(this->queue_mutex);
                         this->condition.wait(lock, [this] {
                             return this->stop || !this->tasks.empty();
                         });
-                        if (this->stop && this->tasks.empty())
-                            return;
+                        if (this->stop && this->tasks.empty()) return;
                         task = std::move(this->tasks.front());
                         this->tasks.pop();
                     }
@@ -56,7 +61,7 @@ public:
     template <class F>
     void enqueue(F&& task) {
         {
-            std::unique_lock<std::mutex> lock(queue_mutex);
+            std::unique_lock lock(queue_mutex);
             tasks.emplace(std::forward<F>(task));
         }
         condition.notify_one();
@@ -64,20 +69,12 @@ public:
 
     ~ThreadPool() {
         {
-            std::unique_lock<std::mutex> lock(queue_mutex);
+            std::unique_lock lock(queue_mutex);
             stop = true;
         }
         condition.notify_all();
-        for (std::thread &worker : workers)
-            worker.join();
+        for (std::thread &worker : workers) worker.join();
     }
-
-private:
-    std::vector<std::thread> workers;
-    std::queue<std::function<void()>> tasks;
-    std::mutex queue_mutex;
-    std::condition_variable condition;
-    bool stop = false;
 };
 
 static uint32_t get_cache_size() {
@@ -90,7 +87,7 @@ static uint32_t get_cache_size() {
         return L1_CACHE_SIZE;
 }
 
-static void transpose_matrix_blocked(const float *src, float *dst, int n, int block_size) {
+static void transpose_matrix_blocked(const float *src, float *dst, const int n, const int block_size) {
     for (int i = 0; i < n; i += block_size) {
         for (int j = 0; j < n; j += block_size) {
             int i_end = std::min(i + block_size, n);
@@ -105,11 +102,11 @@ static void transpose_matrix_blocked(const float *src, float *dst, int n, int bl
 }
 
 static void blocked_threaded_simd_multiply(const float *a, const float *bT, float *c, int n, int block_size) {
-    ThreadPool thread_pool(4);
+    ThreadPool thread_pool(NUM_THREADS);
 
     for (int i_block = 0; i_block < n; i_block += block_size) {
         for (int j_block = 0; j_block < n; j_block += block_size) {
-            thread_pool.enqueue([=] {
+            thread_pool.enqueue([i_block, j_block, n, block_size, a, bT, c] {
                 for (int k_block = 0; k_block < n; k_block += block_size) {
                     int i_end = std::min(i_block + block_size, n);
                     int j_end = std::min(j_block + block_size, n);
@@ -125,15 +122,11 @@ static void blocked_threaded_simd_multiply(const float *a, const float *bT, floa
                                 __m128 mul = _mm_mul_ps(a_vec, b_vec);
                                 sum_vec = _mm_add_ps(sum_vec, mul);
                             }
-
                             float temp[4];
                             _mm_store_ps(temp, sum_vec);
                             float sum_val = temp[0] + temp[1] + temp[2] + temp[3];
 
-                            for (; k < k_end; ++k) {
-                                sum_val += a[i * n + k] * bT[j * n + k];
-                            }
-
+                            for (; k < k_end; ++k) { sum_val += a[i * n + k] * bT[j * n + k]; }
                             c[i * n + j] += sum_val;
                         }
                     }
@@ -146,14 +139,11 @@ static void blocked_threaded_simd_multiply(const float *a, const float *bT, floa
 void optimized_matrix_mul(float *a, float *b, float *c, int n) {
     std::fill(c, c + n*n, 0.0f);
 
-    size_t cache_size = get_cache_size();
+    const size_t cache_size = get_cache_size();
 
-    int block_size = static_cast<int>(std::sqrt(cache_size / 12.0));
-    if (block_size < 16) {
-        block_size = 32;
-    }
+    const int block_size = static_cast<int>(std::sqrt(cache_size / 12));
 
-    std::vector<float> b_transposed(n * n, 0.0f);
+    std::vector b_transposed(n * n, 0.0f);
     transpose_matrix_blocked(b, b_transposed.data(), n, block_size);
 
     blocked_threaded_simd_multiply(a, b_transposed.data(), c, n, block_size);
