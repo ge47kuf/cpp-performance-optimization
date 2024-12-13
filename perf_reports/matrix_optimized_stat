@@ -3,11 +3,11 @@
 
  Performance counter stats for './matrix_profiling' (5 runs):
 
-   <not supported>      instructions
-   <not supported>      cycles
-   <not supported>      L1-dcache-misses
-   <not supported>      cache-misses
-            957.49 msec cpu-clock                        #    3.072 CPUs utilized            ( +-  1.86% )
+    10,183,742,355      instructions                     #    3.68  insn per cycle              ( +-  0.00% )
+     2,768,730,162      cycles                           #    3.061 GHz                         ( +-  0.31% )
+         2,246,960      cache-misses                                                            ( +-  5.73% )
+        29,587,975      L1-dcache-misses                                                        ( +-  0.26% )
+            904.40 msec cpu-clock                        #    3.411 CPUs utilized               ( +-  0.84% )
 
-           0.31172 +- 0.00663 seconds time elapsed  ( +-  2.13% )
+           0.26513 +- 0.00682 seconds time elapsed  ( +-  2.57% )
 

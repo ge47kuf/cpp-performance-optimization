@@ -3,10 +3,10 @@
 
  Performance counter stats for './mandelbrot_profiling' (5 runs):
 
-   <not supported>      instructions
-   <not supported>      cycles
-   <not supported>      branch-misses
-          3,349.99 msec cpu-clock                        #    2.828 CPUs utilized            ( +-  2.84% )
+    24,181,450,397      instructions                     #    1.54  insn per cycle              ( +-  0.01% )
+    15,729,963,965      cycles                           #    3.073 GHz                         ( +-  0.39% )
+         4,959,233      branch-misses                                                           ( +-  0.27% )
+          5,118.32 msec cpu-clock                        #    2.989 CPUs utilized               ( +-  0.47% )
 
-            1.1846 +- 0.0352 seconds time elapsed  ( +-  2.97% )
+            1.7123 +- 0.0126 seconds time elapsed  ( +-  0.73% )
 
