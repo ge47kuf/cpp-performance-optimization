@@ -1,97 +1,111 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/fkzBXQ3T)
-# Task 7 - Performance
+# C++ Performance Optimization Project
 
-This week's exercise involves gathering performance data from programs using `perf` and then optimizing them to achieve faster execution.
+## Overview
 
-## Environment and Language
+This project, was a part of a university exercise, focuses on analyzing and optimizing the performance of C++ code for several tasks. The primary tool used for performance analysis was `perf`. The goal was to apply optimization techniques to achieve speedups compared to baseline implementations.
 
-The assignment requires working on a Linux system, and the language choice for this task is limited to C++.
+## Tasks & Optimizations
 
-## Task 7.1 - Matrix Multiplication
+The project involved optimizing three main components:
 
-### Task 7.1.1 - Performance Before Optimization
+### 1. Matrix Multiplication (`matrix.cpp`)
 
-- Use the `perf` tool to analyze the `matrix_profiling` executable and collect its profiling metrics.
-- Store the performance statistics in the `perf_reports` folder as `matrix_basic_stat`.
-- Requirements:
-    - Maintain the format of the provided `example_stat` file.
-    - Include the following event metrics: 
-        number of instructions executed, CPU cycles, l1 data cache misses, data misses over all caches, an overall measure of CPU time consumed.
-    - The program should be executed and monitored for 5 iterations. 
+* **Goal:** Accelerate the multiplication of large floating-point matrices.
+* **Optimizations Implemented:**
+    * **Multithreading:** Utilized a custom `ThreadPool` implemented with `std::thread`, `std::mutex`, and `std::condition_variable` to parallelize the computation across multiple cores. `NUM_THREADS` was set to 4.
+    * **AVX Vectorization:** Employed AVX intrinsics (`_mm_loadu_ps`, `_mm_mul_ps`, `_mm_add_ps`, etc.) to perform calculations on multiple floating-point numbers simultaneously within the multiplication loop.
+    * **Cache Blocking:** Implemented blocking based on L1 cache size (`L1_CACHE_SIZE`) to improve data locality and reduce cache misses during matrix access.
+    * **Matrix Transposition:** Transposed the second matrix (`B`) before multiplication to achieve more contiguous memory access patterns when multiplying rows of `A` with columns of `B`.
 
-### Task 7.1.2 - Code Optimization
+### 2. Mandelbrot Set Calculation (`mandelbrot.cpp`)
 
-- Optimize the code in `matrix.cpp` for improved performance.
-- Your goal is to approach or even exceed the performance of our optimized code provided as binaries.
-- Deliver `libmatrix.so` in the project root directory, exporting symbols from `matrix.h`.
+* **Goal:** Speed up the generation of the Mandelbrot set fractal for a given image resolution (e.g., 16384x16384).
+* **Optimizations Implemented:**
+    * **AVX2 Vectorization:** Leveraged AVX2 intrinsics (`__m256`, `_mm256_...`) to perform calculations on 8 floating-point numbers (representing complex numbers) in parallel.
+    * **Multithreading:** Divided the image rows among multiple threads (`std::thread`, `MAX_THREADS = 4`) to compute different parts of the fractal concurrently.
+    * **Cache Blocking:** Calculated block sizes based on cache parameters (L1, L2, L3) to potentially improve data locality.
 
-### Task 7.1.3 - Performance After Optimization
+### 3. Map Application (`map_baseline.cpp`)
 
-- Re-build the `matrix_profiling` executable with the optimized code(`make performance`).
-- Use the `perf` tool to analyze its performance profiling.
-- Store the performance statistics in the `matrix_optimized_stat` file within the `perf_reports` folder.
-- Same requirements as Task 7.1.1.
+* **Goal:** Optimize an application that processes a large number of commands (2,000,000) from the `records.txt` file, involving key-value storage and retrieval (`set`, `value` commands) and string parameter replacements (`params` command).
+* **Optimizations Implemented:**
+    * **Data Structure Selection:** Replaced the initial `std::map` with `std::unordered_map` to benefit from its average O(1) time complexity for insertions and lookups, compared to `std::map`'s O(log n).
+    * **Memory Pre-allocation:** Used `entries.reserve(RESERVED_SIZE)` with a large size (`1000000`) to minimize hash table reallocations and copying during the processing of the numerous `set` commands.
+    * **Performance Analysis:** Comments in the code suggest `perf` was used to identify initial bottlenecks (e.g., in `service`, `__memcmp_sse2`) which likely guided the optimization efforts.
 
-## Task 7.2 - Mandelbrot Set Calculation
+## Performance Results
 
-### Task 7.2.1 - Performance Before Optimization
+Performance was measured using `perf stat`, comparing the optimized versions against baseline implementations. Key metrics analyzed included CPU cycles, instructions executed, cache misses, and branch misses.
 
-- Use `perf` to analyze the profiling data of the `mandelbrot_profiling` executable.
-- Store the performance statistics in the `mandelbrot_basic_stat` file within the `perf_reports` folder.
-- Requirements:
-    - Maintain the format of the provided `example_stat` file.
-    - Include the following event metrics:
-        number of instructions executed, CPU cycles, number of branch mispredictions, an overall measure of CPU time consumed.
-    - The program should be executed and monitored for 5 iterations. 
+* **Matrix Multiplication:**
+    * Achieved **[User: Insert Factor]x** speedup in CPU cycles.
+    * Reduced instructions executed by **[User: Insert Factor/Percentage]**.
+    * Decreased L1 cache misses by **[User: Insert Factor/Percentage]**.
+    * *(Add other relevant metrics like cpu-clock speedup)*
+* **Mandelbrot Set Calculation:**
+    * Achieved **[User: Insert Factor]x** speedup in CPU cycles.
+    * *(Add other relevant metrics like instruction count, branch misses, cpu-clock speedup)*
+* **Map Application:**
+    * Achieved **[User: Insert Factor/Percentage]** improvement in processing time for `records.txt`.
+    * *(Add relevant perf metrics if available)*
 
-### Task 7.2.2 - Code Optimization
+*(Note: The specific report files `matrix_basic_stat`, `matrix_optimized_stat`, `mandelbrot_basic_stat`, `mandelbrot_optimized_stat` in the `perf_reports` directory contain the detailed profiling data)*
 
-- Optimize the code in `mandelbrot.cpp` for improved performance.
-- Your goal is to approach or exceed the performance of our optimized code provided as binaries.
-- Deliver `libmandelbrot.so` in the project root directory, exporting symbols from `mandelbrot.h`.
+## Building and Running
 
-### Task 7.2.3 - Performance After Optimization
+This section explains how to compile the project, run the optimized programs, and execute the provided tests.
 
-- Re-build the `mandelbrot_profiling` executable using your optimized `mandelbrot.cpp`.
-- Gather performance profiling metrics.
-- Store the performance statistics in the `mandelbrot_optimized_stat` file within the `perf_reports` folder.
-- Same requirements as Task 7.2.1.
+### Prerequisites
 
-## Task 7.3 - Advanced Profiling and Optimization
+Before you begin, ensure you have the following installed:
 
-In this task, you are provided with an application named `map_baseline.cpp` that contains unoptimized code. 
-Your objective is to optimize this code to improve its performance. The application performs specific interactions based on commands read from a file called `records.txt`, which contains 2,000,000 commands. 
-The commands can be categorized into three types: `set`, `value`, and `params`. 
-- The `set` command adds a key-value pair to a map created by the application.
-- The `value` command retrieves the hashed value corresponding to a given key.
-- The `params` command replaces certain symbols with fixed parameters. 
+* A C++ compiler supporting C++17 and AVX/AVX2 instructions (like a recent version of GCC or Clang).
+* The `make` build automation tool.
+* Python 3 (for running the test suite).
+* The `perf` command-line tool (usually available on Linux) if you want to run detailed performance analysis or if the performance tests require it.
+* The pthreads library (`libpthread`, usually installed by default with the compiler).
 
-The application generates the output into a file named `output`, and the execution time is displayed on the screen. 
-To compare the performance of your optimized code with the given optimized executable `map_optimized`, you can use `make check`.
+### Building the Project
 
-Here are the requirements for this task:
-- Utilize `perf` to analyze the hot spots and identify the major performance bottlenecks in the provided code.
-- Focus your optimization efforts on the identified bottlenecks, ensuring that you **DO NOT MODIFY** the main function.
-- Concentrate on performance analysis and code review **rather than** multi-threaded programming or SIMD optimization techniques.
-- Provide a modified/optimized version of the code in the `map_baseline.cpp` file. 
-- Please ensure that your code can be compiled using the given `Makefile` and that executing it generates the expected output(which you don't need to push it).
+### Built Project
+```bash
+    make all
+```
+### Running Tests
+```bash
+    make check
+```
+### Cleaning Up 
+```bash
+    make clean
+```
 
-Hints:
-- You are allowed to use C++17 standard library.
-- Because of the lackness of the data owernship, `std::string_view` is not recommended in this task.
-- Compiler optimizations can help uncover performance bottlenecks and allow the code to benefit from various optimizations. However, keep in mind that higher optimization 
-levels may make the code harder to analyze and interpret in the profiling results. The generated machine code can be more complex, and the relationships between source code and assembly instructions may become less straightforward.
-Therefore, it's essential to consider the trade-off between optimization and ease of analysis when interpreting the `perf report` output.
+### Running the Optimized Programs
 
-## Notes
+* **Matrix Multiplication (`./matrix_profiling [size]`):** Performs optimized multiplication of two square matrices of a given size.
+    ```bash
+    ./matrix_profiling [size]
+    ```
+* **Mandelbrot Set Generator (`./mandelbrot_profiling [width] [height]`):** Calculates the Mandelbrot set...
+    ```bash
+    ./mandelbrot_profiling [width] [height]
+    ```
+* **Map Application (`./map`):** Processes a sequence of commands...
+    ```bash
+    ./map
+    ```
 
-- If you want to multi-thread your code(not for task7.3), use **a maximum of 4 (four)** threads. You can expect all inputs of your code to be a multiple of 4 in size.
-- If you want to use SIMD in your code(not for task7.3), use **only SSE and SSE2** intrinsics. You can filter the instructions sets on the "Intel Intrinsics Guide" (see references).
-- You could verify the performance by executing the provided tests.
-- We know that there are faster algorithms for matrix multiplication such as the [Strassen Algorithm](https://en.wikipedia.org/wiki/Strassen_algorithm). We **do not** want you to implement that. We want you to **optimize the naive version** given in `matrix.cpp`. The same goes for mandelbrot if you find a faster algorithm.
-- For mandelbrot, you're required to use the parameters given in `tests/mandelbrot_params.h`. Do not change them.
+### Technologies Used
 
-## References
+- C++ (C++17)
+- Make
+- Linux 'perf' Tool
+- AVX & AVX2 Intrinsics
+- std::thread & Custom Thread Pool
+- std::unordered_map
+- Python 3 (for testing)
+
+### References
 
 - [Matrix multiplication](https://en.wikipedia.org/wiki/Matrix_multiplication)
 - [Mandelbrot Set](https://en.wikipedia.org/wiki/Mandelbrot_set)
